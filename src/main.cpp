@@ -30,26 +30,46 @@ RgbColor green(0, 128, 0);
 RgbColor blue(0, 0, 128);
 RgbColor black(0);
 
+void handlePost(){
+  if (server.hasArg("plain") == false) {
+    //handle error here
+  }
+  String body = server.arg("plain");
+
+  DynamicJsonDocument doc(2056);
+  DeserializationError error = deserializeJson(doc, body);
+  if (error)
+  {
+    Serial.println("Error parsing JSON");
+    request->send(400);
+    return;
+  }
+  copyArray(doc["cords"], cords);
+  cordsCount = (int) doc["count"];
+
+  request->send(200, "application/json", "{ \"status\": 0 }");
+}
+
 void configureWebServer()
 {
-  server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
-        if ((request->url() == "/post-message") && (request->method() == HTTP_POST))
-        {
-          DynamicJsonDocument doc(512);
-          Serial.println((const char *) data);
-          DeserializationError error = deserializeJson(doc, (const char *) data);
-          if (error)
-          {
-            Serial.println("Error parsing JSON");
-            request->send(400);
-            return;
-          }
-          copyArray(doc["cords"], cords);
-          cordsCount = (int) doc["count"];
+  server.on("/led", HTTP_POST, handlePost);	
+  // server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+  //       if ((request->url() == "/post-message") && (request->method() == HTTP_POST))
+  //       {
+          // DynamicJsonDocument doc(2056);
+          // DeserializationError error = deserializeJson(doc, );
+          // if (error)
+          // {
+          //   Serial.println("Error parsing JSON");
+          //   request->send(400);
+          //   return;
+          // }
+          // copyArray(doc["cords"], cords);
+          // cordsCount = (int) doc["count"];
 
-          request->send(200, "application/json", "{ \"status\": 0 }");
-        } 
-  });
+          // request->send(200, "application/json", "{ \"status\": 0 }");
+  //       } 
+  // });
 
 }
 
