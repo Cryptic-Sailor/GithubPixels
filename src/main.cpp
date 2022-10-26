@@ -5,16 +5,16 @@
 //#include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
 #include <NeoPixelBrightnessBus.h>
-//#include <ESPAsyncWebServer.h>
 #include <ESP8266WebServer.h>
 #include <ArduinoJson.h>
 
-// Global Variables
 
+// Global Variables
 const uint8_t panelWidth = 32;
 const uint8_t panelHeight = 8;
 const uint16_t pixelCount = panelWidth * panelHeight;
 const uint8_t brightness = 128;
+bool clear = false;
 ESP8266WebServer server(80);
 
 
@@ -49,7 +49,8 @@ void handlePost(){
   }
   copyArray(doc["cords"], cords);
   cordsCount = (int) doc["count"];
-
+  clear = (bool) doc["clear"];
+  doc.clear();
 
   server.send(200, "application/json", "{ \"status\": 0 }");
 }
@@ -64,17 +65,14 @@ void setup()
 {
   WiFi.softAP("esp8266");
   Serial.begin(115200);
+  
   server.begin();
   configureWebServer();
+
   strip.Begin();
   strip.Show();
-
-  delay(1000);
   strip.ClearTo(black);
   strip.Show();
-
-  delay(1000);
-
   strip.SetBrightness(brightness);
 
 }
@@ -83,25 +81,38 @@ void loop()
 {
   server.handleClient();
 
-  // if (cordsCount < 256)
-  // {
-  //   cordsCount = 0;
-  // }
-  strip.SetPixelColor(topo.Map(cords[cordsCount][0], cords[cordsCount][1]), RgbColor(cords[cordsCount][2], cords[cordsCount][3], cords[cordsCount][4]));
-  cordsCount--;
+  if (clear)
+  {
+    strip.ClearTo(black);
+    strip.Show();
+    clear = false;
+  }
+
+  if (cordsCount > 256)
+  {
+     cordsCount = 0;
+  }
+
+  if (cordsCount > 0){
+    for ( int i = 0; i < cordsCount; i++)
+    {
+      // Serial.print(cords[i][0]);
+      // Serial.print(" ,");
+      // Serial.println(cords[i][1]);
+      // Serial.print(" ,");
+      // Serial.println(cords[i][2]);
+      // Serial.print(" ,");
+      // Serial.println(cords[i][3]);
+      // Serial.print(" ,");
+      // Serial.println(cords[i][4]);
+      
+      strip.SetPixelColor(topo.Map(cords[i][0], cords[i][1]), RgbColor(cords[i][2], cords[i][3], cords[i][4]));
+    }
+  cordsCount = 0;
   strip.Show();
+  }
 
-  // for (int i = 0; i < cordsCount; i++)
-  // {
-  //   Serial.print(cords[i][0]);
-  //   Serial.print(",");
-  //   Serial.println(cords[i][1]);
-  //   strip.SetPixelColor(topo.Map(cords[i][0], cords[i][1]), green);
-  //   cordsCount--;
 
-  //   strip.Show();
-  // }
 
-  // delay(1000);
 }
 
