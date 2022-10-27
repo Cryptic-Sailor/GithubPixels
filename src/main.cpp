@@ -120,6 +120,7 @@ void loop()
     }
      github = false;
   }
+  
   if (timer){
     if (cordsCount > 0)
     {
