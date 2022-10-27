@@ -14,7 +14,8 @@ const uint8_t panelHeight = 8;
 const uint16_t pixelCount = panelWidth * panelHeight;
 const uint8_t brightness = 128;
 bool clear = false;
-bool github = true;
+bool github = false;
+bool timer = false;
 ESP8266WebServer server(80);
 
 int cords[256][5];
@@ -53,6 +54,8 @@ void handlePost()
   copyArray(doc["cords"], cords);
   cordsCount = (int)doc["count"];
   clear = (bool)doc["clear"];
+  github = (bool)doc["github"];
+  timer = (bool)doc["timer"];
   doc.clear();
 
   server.send(200, "application/json", "{ \"status\": 0 }");
@@ -115,5 +118,19 @@ void loop()
       cordsCount = 0;
       strip.Show();
     }
+     github = false;
+  }
+  if (timer){
+    if (cordsCount > 0)
+    {
+      for (int i = 0; i < cordsCount; i++)
+      {
+        strip.SetPixelColor(topo.Map(cords[i][0], cords[i][1]), RgbColor(cords[i][2], cords[i][3], cords[i][4]));
+        delay(1000);
+        strip.Show();
+      }
+      cordsCount = 0;
+    }
+    timer = false;
   }
 }
